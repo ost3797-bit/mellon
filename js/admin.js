@@ -1,4 +1,4 @@
-// js/admin.js
+// js/admin.js — 관리자 페이지 전용 스크립트(전체 교체본)
 window.addEventListener('DOMContentLoaded', () => {
   try {
     // 0) Firebase 초기화 가드
@@ -10,6 +10,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const db   = firebase.firestore();
     const $    = (s) => document.querySelector(s);
     const provider = new firebase.auth.GoogleAuthProvider();
+
+    // 진단: 프로젝트 확인
+    try {
+      console.log('[ADMIN] projectId =', firebase.app().options?.projectId || '(unknown)');
+    } catch (_) {}
 
     // 1) 로그인: 팝업 → (막히면) 리다이렉트 폴백
     const safeSignIn = async () => {
@@ -26,7 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    // 2) 로그인/로그아웃 버튼 UI 토글
+    // 2) 로그인/로그아웃 UI 토글
     const updateAuthUI = (u) => {
       const signInBtn  = $('#btnSignIn')  || document.querySelector('[data-action="signin"]');
       const signOutBtn = $('#btnSignOut') || document.querySelector('[data-action="signout"]');
@@ -35,11 +40,11 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     auth.onAuthStateChanged(u => {
-      console.log('[ADMIN AUTH]', u?.email || null);
+      console.log('[ADMIN AUTH] user:', u?.email || null);
       updateAuthUI(u);
     });
 
-    // 3) 리스트 렌더
+    // 3) 카드 HTML
     function itemHTML(id, d){
       let media = '';
       if (d.fileType === 'image') media = `<img src="${d.fileURL}" alt="">`;
@@ -55,30 +60,33 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>${media}</div>`;
     }
 
-    const render = (sel, snap) => {
-      const root = $(sel);
+    // 4) 목록 렌더러
+    function renderList(rootSel, snap){
+      const root = $(rootSel);
       root.innerHTML = '';
       snap.forEach(doc => root.insertAdjacentHTML('beforeend', itemHTML(doc.id, doc.data())));
-    };
+    }
 
-    // 4) 실시간 구독(+에러 표시)
+    // 5) 실시간 구독(+에러 표시)
     db.collection('posts')
       .where('approved','==', false)
       .orderBy('createdAt','desc')
       .onSnapshot(
-        snap => render('#pending', snap),
-        err  => { console.error('[ADMIN] PENDING_QUERY_ERR', err); alert('대기목록 오류: ' + (err?.message || err)); }
+        snap => renderList('#pending', snap),
+        err  => { console.error('[ADMIN] PENDING_QUERY_ERR', err);
+                  alert('대기목록 오류: ' + (err?.message || err) + '\n\n※ 인덱스 필요 시 콘솔 링크로 생성하세요.'); }
       );
 
     db.collection('posts')
       .orderBy('createdAt','desc')
       .limit(50)
       .onSnapshot(
-        snap => render('#all', snap),
-        err  => { console.error('[ADMIN] ALL_QUERY_ERR', err); alert('전체목록 오류: ' + (err?.message || err)); }
+        snap => renderList('#all', snap),
+        err  => { console.error('[ADMIN] ALL_QUERY_ERR', err);
+                  alert('전체목록 오류: ' + (err?.message || err)); }
       );
 
-    // 5) 이벤트 위임: 로그인/승인/삭제 모두 단일 핸들러
+    // 6) 이벤트 위임: 로그인/승인/삭제 단일 핸들러
     document.addEventListener('click', async (e) => {
       // 로그인 (id 또는 data-action 지원)
       if (e.target.closest('#btnSignIn, [data-action="signin"]')) {
@@ -97,8 +105,15 @@ window.addEventListener('DOMContentLoaded', () => {
         const id = approveBtn.getAttribute('data-approve');
         approveBtn.disabled = true;
         try {
-          await db.collection('posts').doc(id).set({ approved: true }, { merge: true }); // 병합 쓰기
-          console.log('[ADMIN] APPROVE_OK', id);
+          const ref = db.collection('posts').doc(id);
+
+          // 병합 쓰기(안전)로 승인 처리
+          await ref.set({ approved: true }, { merge: true });
+
+          // 서버 재확인(디버그)
+          const snap = await ref.get();
+          const approvedNow = snap.exists ? snap.data().approved : '(문서없음)';
+          console.log('[ADMIN] APPROVE_OK id=', id, 'approvedNow=', approvedNow);
         } catch (err) {
           console.error('[ADMIN] APPROVE_ERR', err);
           alert('승인 오류: ' + (err?.message || err));
