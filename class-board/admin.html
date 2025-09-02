@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>우리반 게시판 - 관리자</title>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<style>
+body{font-family:system-ui,Segoe UI,Roboto,Apple Color Emoji,Noto Color Emoji}
+.wrap{max-width:960px;margin:0 auto;padding:24px}
+.card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;background:#f3f4f6;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.item{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+.item .meta{padding:10px;font-size:14px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card row">
+<h2 style="margin:0">관리자 승인</h2>
+<div style="margin-left:auto">
+<button class="btn" id="btnSignIn">Google 로그인</button>
+<button class="btn" id="btnSignOut" style="display:none">로그아웃</button>
+</div>
+</div>
+
+
+<div class="card">
+<h3>대기 중(승인 전)</h3>
+<div id="pending" class="grid"></div>
+</div>
+
+
+<div class="card">
+<h3>전체(최근순)</h3>
+<div id="all" class="grid"></div>
+</div>
+</div>
+<script src="./js/firebaseConfig.js"></script>
+<script src="./js/admin.js"></script>
+</body>
+</html>
