@@ -67,7 +67,13 @@ input[type="text"], textarea{width:100%;padding:10px;border:1px solid #e5e7eb;bo
 </div>
 
 
-<!-- Firebase 설정 파일 (자신의 값으로 교체 후 파일명 firebaseConfig.js로 저장) -->
+<!-- Firebase SDK (반드시 defer) -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+<!-- 로컬 스크립트: 경로는 반드시 ./ 로 시작, firebaseConfig.js가 먼저 -->
 <script defer src="./js/firebaseConfig.js"></script>
 <script defer src="./js/app.js"></script>
 </body>
