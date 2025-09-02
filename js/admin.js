@@ -50,7 +50,6 @@ root.querySelectorAll('[data-reject]').forEach(b=> b.onclick = async ()=>{
     alert('삭제 오류: ' + (err?.message || err));
   }
 });
-}  //
 
 // 승인 대기
 db.collection('posts').where('approved','==',false).orderBy('createdAt','desc').onSnapshot(s=>{
@@ -70,4 +69,5 @@ bindActions(root);
 });
 
 })();
+
 
