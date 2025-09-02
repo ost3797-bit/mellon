@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+match /databases/{database}/documents {
+match /posts/{postId} {
+allow read: if resource.data.approved == true || (request.auth != null && request.auth.token.email in ["teacher@example.kr"]);
+allow create: if request.auth != null
+&& request.resource.data.uid == request.auth.uid
+&& request.resource.data.approved == false; // 학생 글은 항상 승인 대기로 생성
+// 학생은 자신의 글 내용만 수정 가능(approved 필드는 학생이 바꿀 수 없음)
+allow update: if request.auth != null && request.auth.uid == resource.data.uid &&
+request.resource.data.approved == resource.data.approved
+|| (request.auth != null && request.auth.token.email in ["teacher@example.kr"]);
+// 삭제는 교사만
+allow delete: if request.auth != null && request.auth.token.email in ["teacher@example.kr"];
+}
+}
+}
