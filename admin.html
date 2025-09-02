@@ -41,7 +41,13 @@ body{font-family:system-ui,Segoe UI,Roboto,Apple Color Emoji,Noto Color Emoji}
 <div id="all" class="grid"></div>
 </div>
 </div>
-<script src="./js/firebaseConfig.js"></script>
-<script src="./js/admin.js"></script>
+<!-- Firebase SDK (관리자 페이지에도 필요, 반드시 defer) -->
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- 로컬 스크립트: 경로는 반드시 ./ 로 시작, config가 먼저, admin.js가 나중 -->
+<script defer src="./js/firebaseConfig.js"></script>
+<script defer src="./js/admin.js"></script>
 </body>
 </html>
