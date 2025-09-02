@@ -30,14 +30,26 @@ return `<div class="item"><div class="meta"><div><strong>${d.title||'(제목 없
 
 function bindActions(root){
 root.querySelectorAll('[data-approve]').forEach(b=> b.onclick = async ()=>{
-const id = b.getAttribute('data-approve');
-await db.collection('posts').doc(id).update({approved:true});
+  const id = b.getAttribute('data-approve');
+  try{
+    await db.collection('posts').doc(id).set({ approved: true }, { merge: true });
+    console.log('[ADMIN] APPROVE_OK', id);
+  }catch(err){
+    console.error('[ADMIN] APPROVE_ERR', err);
+    alert('승인 오류: ' + (err?.message || err));
+  }
 });
+
 root.querySelectorAll('[data-reject]').forEach(b=> b.onclick = async ()=>{
-const id = b.getAttribute('data-reject');
-await db.collection('posts').doc(id).delete();
+  const id = b.getAttribute('data-reject');
+  try{
+    await db.collection('posts').doc(id).delete();
+    console.log('[ADMIN] DELETE_OK', id);
+  }catch(err){
+    console.error('[ADMIN] DELETE_ERR', err);
+    alert('삭제 오류: ' + (err?.message || err));
+  }
 });
-}
 
 
 // 승인 대기
@@ -56,4 +68,5 @@ root.innerHTML='';
 s.forEach(doc=> root.insertAdjacentHTML('beforeend', itemHTML(doc.id, doc.data())));
 bindActions(root);
 });
+
 })();
