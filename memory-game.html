@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사진 짝맞추기 게임</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #ffe8f0 0%, #fff6d5 100%);
+      --card-size: min(22vw, 140px);
+      --card-radius: 22px;
+      --shadow: 0 16px 40px rgba(255, 160, 210, 0.25);
+      --primary: #ff6fb7;
+      --secondary: #8b5cf6;
+      --text: #3b0764;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Nunito', 'Jua', 'Pretendard', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+
+    h1 {
+      font-family: 'Jua', cursive;
+      font-size: clamp(2.5rem, 4vw, 3.8rem);
+      margin: 16px 0 8px;
+      text-shadow: 0 8px 20px rgba(255, 111, 183, 0.45);
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      font-size: 1.1rem;
+      opacity: 0.85;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(59, 7, 100, 0.14);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: translateY(2px) scale(0.99);
+      box-shadow: 0 6px 18px rgba(59, 7, 100, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff86c8, #ff6fb7);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+      color: white;
+    }
+
+    .stats {
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 18px;
+      padding: 12px 20px;
+      display: inline-flex;
+      gap: 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      box-shadow: 0 14px 38px rgba(139, 92, 246, 0.22);
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, var(--card-size));
+      gap: 18px;
+      justify-content: center;
+      width: min(90vw, 640px);
+    }
+
+    .card {
+      width: var(--card-size);
+      height: var(--card-size);
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--card-radius);
+      position: relative;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .card.is-flipped .card-inner,
+    .card.is-matched .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: var(--card-radius);
+      overflow: hidden;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #a855f7, #f472b6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .card-front {
+      transform: rotateY(180deg);
+      background: #fff5fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .complete-message {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 20px;
+      padding: 14px 24px;
+      box-shadow: 0 14px 30px rgba(255, 111, 183, 0.25);
+      display: none;
+    }
+
+    .hint {
+      max-width: 640px;
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin-top: 24px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      box-shadow: 0 14px 30px rgba(168, 85, 247, 0.15);
+    }
+
+    @media (max-width: 600px) {
+      :root {
+        --card-size: min(28vw, 120px);
+      }
+
+      body {
+        padding: 18px 12px 32px;
+      }
+
+      .controls {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>사진 짝맞추기</h1>
+  <p class="subtitle">카드를 뒤집어 똑같은 사진 두 장을 찾아보세요!</p>
+
+  <div class="controls">
+    <button id="btnRestart" class="btn-primary" type="button">다시 섞기</button>
+    <button id="btnFullscreen" class="btn-secondary" type="button">전체 화면</button>
+    <div class="stats">
+      <span>뒤집은 횟수: <strong id="flipCount">0</strong>번</span>
+      <span>맞춘 쌍: <strong id="matchCount">0</strong>쌍</span>
+    </div>
+  </div>
+
+  <div id="gameBoard" class="game-board"></div>
+  <div id="completeMessage" class="complete-message"></div>
+
+  <div class="hint">
+    <strong>카드 이미지 바꾸는 방법</strong><br />
+    아래 스크립트에 있는 <code>cardImages</code> 배열의 경로를 원하는 사진 파일로 바꾸면 됩니다.<br />
+    예: <code>src: 'images/my-photo-01.jpg'</code> (동일한 사진이 한 쌍이 되도록 8개 이미지를 넣어주세요.)
+  </div>
+
+  <script>
+    // 원하는 사진 경로로 자유롭게 수정하세요!
+    const cardImages = [
+      { src: 'images/photo-01.jpg', label: '사진1' },
+      { src: 'images/photo-02.jpg', label: '사진2' },
+      { src: 'images/photo-03.jpg', label: '사진3' },
+      { src: 'images/photo-04.jpg', label: '사진4' },
+      { src: 'images/photo-05.jpg', label: '사진5' },
+      { src: 'images/photo-06.jpg', label: '사진6' },
+      { src: 'images/photo-07.jpg', label: '사진7' },
+      { src: 'images/photo-08.jpg', label: '사진8' }
+    ];
+
+    const board = document.getElementById('gameBoard');
+    const flipCountEl = document.getElementById('flipCount');
+    const matchCountEl = document.getElementById('matchCount');
+    const completeMessage = document.getElementById('completeMessage');
+    const fullscreenBtn = document.getElementById('btnFullscreen');
+
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let flipCount = 0;
+    let matchCount = 0;
+
+    function shuffle(array) {
+      const cloned = [...array];
+      for (let i = cloned.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    }
+
+    function updateStats() {
+      flipCountEl.textContent = flipCount;
+      matchCountEl.textContent = matchCount;
+    }
+
+    function resetBoard() {
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+    }
+
+    function createCardElement(item, index) {
+      const card = document.createElement('button');
+      card.className = 'card';
+      card.type = 'button';
+      card.dataset.name = item.label;
+      card.dataset.index = index;
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-face card-back">❓</div>
+          <div class="card-face card-front">
+            <img src="${item.src}" alt="${item.label}" onerror="this.src='https://placehold.co/300x300?text=+'" />
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => handleCardClick(card));
+      return card;
+    }
+
+    function buildBoard() {
+      const duplicated = [...cardImages, ...cardImages];
+      const shuffled = shuffle(duplicated.map((item, idx) => ({ ...item, id: idx })));
+      board.innerHTML = '';
+      shuffled.forEach((item, index) => {
+        const card = createCardElement(item, index);
+        board.appendChild(card);
+      });
+      flipCount = 0;
+      matchCount = 0;
+      updateStats();
+      completeMessage.style.display = 'none';
+      completeMessage.textContent = '';
+    }
+
+    function handleCardClick(card) {
+      if (lockBoard) return;
+      if (card === firstCard) return;
+      if (card.classList.contains('is-matched')) return;
+
+      card.classList.add('is-flipped');
+      flipCount += 1;
+      updateStats();
+
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      secondCard = card;
+      checkForMatch();
+    }
+
+    function checkForMatch() {
+      const isMatch = firstCard.dataset.name === secondCard.dataset.name;
+      if (isMatch) {
+        firstCard.classList.add('is-matched');
+        secondCard.classList.add('is-matched');
+        matchCount += 1;
+        updateStats();
+        resetBoard();
+        checkGameComplete();
+      } else {
+        lockBoard = true;
+        setTimeout(() => {
+          firstCard.classList.remove('is-flipped');
+          secondCard.classList.remove('is-flipped');
+          resetBoard();
+        }, 850);
+      }
+    }
+
+    function checkGameComplete() {
+      const totalPairs = cardImages.length;
+      if (matchCount === totalPairs) {
+        completeMessage.textContent = `짝짝짝! 모두 찾았어요 🎉 (총 뒤집은 횟수: ${flipCount}번)`;
+        completeMessage.style.display = 'inline-flex';
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {
+          alert('전체 화면을 지원하지 않는 브라우저입니다.');
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenBtn.textContent = document.fullscreenElement ? '전체 화면 종료' : '전체 화면';
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', buildBoard);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    buildBoard();
+  </script>
+</body>
+</html>
